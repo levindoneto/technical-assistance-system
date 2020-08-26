@@ -470,7 +470,7 @@ def initDb():
 
     return db_cursor
 
-# Relatório de categorias com respectivas quantidades de produtos e marcas com produtos daquela categoria (categoria/classificacao/produto)
+# a.i) Relatório de categorias com respectivas quantidades de produtos e marcas com produtos daquela categoria (categoria/classificacao/produto)
 def getCategoriesReport():
     cursor.execute("""
         SELECT nome,COUNT(DISTINCT(fk_produto_id)) produtos,COUNT(DISTINCT(fk_marca_id)) marcas
@@ -481,5 +481,23 @@ def getCategoriesReport():
     """)
     categories = dict()
     for category in cursor:
-        categories[category[0]] = {"products": str(category[1]), "brands": str(category[2])}
+        categories[category[0]] = {"products": category[1], "brands": category[2]}
     return categories
+
+# a.ii) Relatório de clientes com somatório de lançamentos em aberto de acima de valor x, (pessoa/pedido/lancamento)
+def getOrdersAboveTotal(total):
+    cursor.execute("""
+        SELECT nome, SUM(valor) total
+        FROM pessoa PE
+        JOIN pedido PD ON PD.fk_pessoa_id = PE.id
+        JOIN lancamento L ON L.fk_pedido_numero = PD.numero
+        WHERE NOT debito
+        AND data_quitacao IS NULL
+        GROUP BY nome
+        HAVING total > {total}
+    """.format(total=total))
+    clients = list()
+    for client in cursor:
+        clients.append({"name": client[0], "total": float(client[1])})
+    
+    return clients
