@@ -1,18 +1,26 @@
 import mysql.connector
 
+def connect():
+    global db_connection
+    try:
+        db_connection = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            passwd="new_password",
+            database="fbdproj"
+        )
+        global cursor
+        cursor = db_connection.cursor()
+        # return db_connection.cursor()
+    except:
+        print("Can't connect to database")
+        return -1
+connect()
+
 def initDb():
-    db_connection = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        passwd="new_password",
-        database="fbdproj"
-    )
-
-    print(db_connection)
-
-    db_cursor = db_connection.cursor()
     # db_cursor.execute("CREATE DATABASE fbdproj")
-    db_cursor.execute("""
+    
+    cursor.execute("""
         CREATE TABLE marca (
             id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
             nome VARCHAR(50) NOT NULL UNIQUE
@@ -462,4 +470,16 @@ def initDb():
 
     return db_cursor
 
-initDb()
+# Relatório de categorias com respectivas quantidades de produtos e marcas com produtos daquela categoria (categoria/classificacao/produto)
+def getCategoriesReport():
+    cursor.execute("""
+        SELECT nome,COUNT(DISTINCT(fk_produto_id)) produtos,COUNT(DISTINCT(fk_marca_id)) marcas
+        FROM categoria CA
+        JOIN classificacao CL ON CL.fk_categoria_id = CA.id
+        JOIN produto PR ON PR.id = CL.fk_produto_id
+        GROUP BY nome;
+    """)
+    categories = dict()
+    for category in cursor:
+        categories[category[0]] = {"products": str(category[1]), "brands": str(category[2])}
+    return categories
