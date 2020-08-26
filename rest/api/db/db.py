@@ -484,20 +484,24 @@ def getCategoriesReport():
         categories[category[0]] = {"products": category[1], "brands": category[2]}
     return categories
 
-# a.ii) Relatório de clientes com somatório de lançamentos em aberto de acima de valor x, (pessoa/pedido/lancamento)
-def getOrdersAboveTotal(total):
+# b.i) Relatório de fornecedores dos quais nunca foi comprado produtos que trabalhamos mas que estão relacionados como fornecedores desses produtos
+def getProvidersNotBoughtReport():
     cursor.execute("""
-        SELECT nome, SUM(valor) total
+        SELECT nome, telefone, email, FM.fk_produto_id, descricao
         FROM pessoa PE
-        JOIN pedido PD ON PD.fk_pessoa_id = PE.id
-        JOIN lancamento L ON L.fk_pedido_numero = PD.numero
-        WHERE NOT debito
-        AND data_quitacao IS NULL
-        GROUP BY nome
-        HAVING total > {total}
-    """.format(total=total))
-    clients = list()
-    for client in cursor:
-        clients.append({"name": client[0], "total": float(client[1])})
+        JOIN fornecimento FM ON FM.fk_pessoa_id = PE.id
+        JOIN produto PR ON PR.id = FM.fk_produto_id
+        WHERE NOT EXISTS (
+        SELECT *
+        FROM pedido PD
+        JOIN item_pedido IP ON IP.fk_pedido_numero = PD.numero
+        WHERE PD.fk_pessoa_id = FM.fk_pessoa_id
+        AND IP.fk_produto_id = FM.fk_produto_id)
+        ORDER BY nome;
+    """)
+    providers = list()
+    for provider in cursor:
+        providers.append(
+            {"name": provider[0], "phone": provider[1], "email": provider[2], "productId": provider[3], "description": provider[4]})
     
-    return clients
+    return providers
