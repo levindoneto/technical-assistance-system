@@ -453,10 +453,6 @@ def initDb(createDb=False, executeQuery=True):
         """, multi=True)
         print("Queries executed")
 
-
-initDb()
-print(cursor)
-
 # a.i) Relatório de categorias com respectivas quantidades de produtos e marcas com produtos daquela categoria (categoria/classificacao/produto)
 def getCategoriesReport():
     cursor.execute("""
@@ -489,27 +485,27 @@ def getProvidersNotBoughtReport():
     providers = list()
     for provider in cursor:
         providers.append(
-            {"name": provider[0], "phone": provider[1], "email": provider[2], "productId": provider[3], "description": provider[4]})
+            {"name": provider[0], "phone": "" if "None" == provider[1] else provider[1], "email": "" if "None" == provider[2] else provider[2], "productId": provider[3], "description": provider[4]})
     
     return providers
 
 # b.ii) Relatório de OS em aberto de clientes com lançamentos vencidos em aberto para reter equipamento até quitarem tudo
 def getOpenOrderReport():
     cursor.execute("""
-        SELECT nome, telefone, email, FM.fk_produto_id, descricao
-        FROM pessoa PE
-        JOIN fornecimento FM ON FM.fk_pessoa_id = PE.id
-        JOIN produto PR ON PR.id = FM.fk_produto_id
-        WHERE NOT EXISTS (
         SELECT *
-        FROM pedido PD
-        JOIN item_pedido IP ON IP.fk_pedido_numero = PD.numero
-        WHERE PD.fk_pessoa_id = FM.fk_pessoa_id
-        AND IP.fk_produto_id = FM.fk_produto_id)
-        ORDER BY nome;
+        FROM lista_ordem_servico
+        WHERE id_pessoa IN (
+        SELECT PE.id
+        FROM lancamento L
+        JOIN pedido PD ON PD.numero = L.fk_pedido_numero
+        JOIN pessoa PE ON PE.id = PD.fk_pessoa_id
+        WHERE data_vencimento < '2020-08-25'
+        AND data_quitacao IS NULL
+        AND NOT debito)
+        AND data_entrega IS NULL;
     """)
-    providers = list()
-    for provider in cursor:
-        providers.append(
-            {"name": provider[0], "phone": provider[1], "email": provider[2], "productId": provider[3], "description": provider[4]})
-    
+    orders = list()
+    for order in cursor:
+        orders.append(
+            {"openedDate": str(order[0]), "number": order[1], "deliveredDate": "" if "None" == str(order[2]) else str(order[2]), "personId": order[3], "phone": order[4], "equipment": order[5]})
+    return orders
