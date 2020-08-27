@@ -509,3 +509,25 @@ def getOpenOrderReport():
         orders.append(
             {"openedDate": str(order[0]), "number": order[1], "deliveredDate": "" if "None" == str(order[2]) else str(order[2]), "personId": order[3], "phone": order[4], "equipment": order[5]})
     return orders
+
+# c) Relatório de clientes que já fizeram compras e com o respectivo total gasto, mas que nunca abriram uma ordem de serviço
+def getClientsWhoBoughtReport():
+    cursor.execute("""
+        SELECT id, nome, SUM(valor) gastos
+        FROM pessoa PE
+        JOIN pedido PD ON PD.fk_pessoa_id = PE.id
+        JOIN lancamento L ON L.fk_pedido_numero = PD.numero
+        WHERE NOT debito
+        AND tipo = 'V'
+        AND NOT EXISTS (SELECT *
+                            FROM pedido
+                            WHERE fk_pessoa_id = PE.id
+                            AND tipo = 'S')					 
+        GROUP BY id, nome;
+    """)
+    clients = list()
+    for client in cursor:
+        clients.append(
+            {"id": client[0], "name": client[1], "spent": float(client[2])})
+    
+    return clients
