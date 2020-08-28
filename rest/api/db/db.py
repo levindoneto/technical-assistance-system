@@ -531,3 +531,21 @@ def getClientsWhoBoughtReport():
             {"id": client[0], "name": client[1], "spent": float(client[2])})
     
     return clients
+
+# d.1) Relatório das ordens de serviço com total de produtos e serviços
+def getOSTotaltReport():
+    cursor.execute("""
+        SELECT data_abertura, fk_pedido_numero numero_os, nome, equipamento, SUM(IP.quantidade*IP.valor_unitario-IFNULL(IP.desconto,0)) produtos, SUM(SV.quantidade*SV.valor_unitario-IFNULL(SV.desconto,0)) servicos, data_entrega
+        FROM item_pedido IP
+        JOIN lista_ordem_servico LOS ON LOS.numero = IP.fk_pedido_numero
+        JOIN item_servico SV ON SV.fk_ordem_servico_numero = LOS.numero
+        GROUP BY fk_pedido_numero;
+    """)
+    orders = list()
+    for order in cursor:
+        orders.append(
+            {"openedDate": str(order[0]), "os_number": order[1], "name": order[2], "equipment": order[3], "products": float(order[4]), "services": float(order[5]), "deliveredDate": "" if "None" == str(order[6]) else str(order[6])})
+    
+    return orders
+
+print(getOSTotaltReport())
