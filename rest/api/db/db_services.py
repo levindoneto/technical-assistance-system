@@ -572,9 +572,9 @@ def getOSTotaltReport():
     
     return orders
 
-# d.2) b.ii
+# d.ii) b.ii
 
-# e.1) Listagem de todas as contas a pagar em aberto ou finalizadas
+# e.i) Listagem de todas as contas a pagar em aberto ou finalizadas
 def getBillsToPay():
     cursor.execute("""
         SELECT data_vencimento,PE.nome,valor,numero,tipo,MP.nome AS meio_pagamento,CX.nome AS caixa,descricao,data_quitacao,data_lancamento
@@ -585,7 +585,6 @@ def getBillsToPay():
         JOIN meio_pagamento MP ON MP.id = L.fk_meio_pagamento_id
         WHERE debito AND data_vencimento IS NOT NULL
         ORDER BY data_vencimento,data_quitacao;
-
     """)
     bills = list()
     for bill in cursor:
@@ -596,9 +595,39 @@ def getBillsToPay():
             "number": None if "None" == str(bill[3]) else str(bill[3]),
             "type": "" if "None" == str(bill[4]) else str(bill[4]),
             "paymentMethod": bill[5],
-            "description": bill[6],
+            "description": "" if "None" == str(bill[6]) else str(bill[6]),
             "paymentDate": "" if "None" == str(bill[7]) else str(bill[7]),
             "releaseDate": "" if "None" == str(bill[8]) else str(bill[8]),
         })
     
     return bills
+
+# e.ii) Listagem de todas as contas a receber em aberto ou finalizadas
+def getBillsToReceive():
+    cursor.execute("""
+        SELECT data_vencimento,PE.nome,valor,numero,tipo,MP.nome AS meio_pagamento,CX.nome AS caixa,descricao,data_quitacao,data_lancamento
+        FROM lancamento L
+        LEFT JOIN pedido PD ON PD.numero = L.fk_pedido_numero
+        LEFT JOIN pessoa PE ON PE.id = PD.fk_pessoa_id
+        JOIN caixa CX ON CX.id = L.fk_caixa_id
+        JOIN meio_pagamento MP ON MP.id = L.fk_meio_pagamento_id
+        WHERE NOT debito AND data_vencimento IS NOT NULL
+        ORDER BY data_vencimento,data_quitacao;
+    """)
+    bills = list()
+    for bill in cursor:
+        bills.append({
+            "dueDate": str(bill[0]),
+            "name": "" if "None" == str(bill[1]) else str(bill[1]),
+            "value": float(bill[2]),
+            "number": None if "None" == str(bill[3]) else str(bill[3]),
+            "type": "" if "None" == str(bill[4]) else str(bill[4]),
+            "paymentMethod": bill[5],
+            "description": "" if "None" == str(bill[6]) else str(bill[6]),
+            "paymentDate": "" if "None" == str(bill[7]) else str(bill[7]),
+            "releaseDate": "" if "None" == str(bill[8]) else str(bill[8]),
+        })
+    
+    return bills
+
+print(getBillsToReceive())
