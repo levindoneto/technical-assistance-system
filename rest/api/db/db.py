@@ -464,7 +464,10 @@ def getCategoriesReport():
     """)
     categories = dict()
     for category in cursor:
-        categories[category[0]] = {"products": category[1], "brands": category[2]}
+        categories[category[0]] = {
+            "products": category[1],
+            "brands": category[2]
+        }
     return categories
 
 # b.i) Relatório de fornecedores dos quais nunca foi comprado produtos que trabalhamos mas que estão relacionados como fornecedores desses produtos
@@ -484,8 +487,13 @@ def getProvidersNotBoughtReport():
     """)
     providers = list()
     for provider in cursor:
-        providers.append(
-            {"name": provider[0], "phone": "" if "None" == provider[1] else provider[1], "email": "" if "None" == provider[2] else provider[2], "productId": provider[3], "description": provider[4]})
+        providers.append({
+            "name": provider[0],
+            "phone": "" if "None" == provider[1] else provider[1],
+            "email": "" if "None" == provider[2] else provider[2],
+            "productId": provider[3],
+            "description": provider[4]
+        })
     
     return providers
 
@@ -506,8 +514,14 @@ def getOpenOrderReport():
     """)
     orders = list()
     for order in cursor:
-        orders.append(
-            {"openedDate": str(order[0]), "number": order[1], "deliveredDate": "" if "None" == str(order[2]) else str(order[2]), "personId": order[3], "phone": order[4], "equipment": order[5]})
+        orders.append({
+            "openedDate": str(order[0]),
+            "number": order[1],
+            "deliveredDate": "" if "None" == str(order[2]) else str(order[2]),
+            "personId": order[3],
+            "phone": order[4],
+            "equipment": order[5]
+        })
     return orders
 
 # c) Relatório de clientes que já fizeram compras e com o respectivo total gasto, mas que nunca abriram uma ordem de serviço
@@ -527,8 +541,11 @@ def getClientsWhoBoughtReport():
     """)
     clients = list()
     for client in cursor:
-        clients.append(
-            {"id": client[0], "name": client[1], "spent": float(client[2])})
+        clients.append({
+            "id": client[0],
+            "name": client[1],
+            "spent": float(client[2])
+        })
     
     return clients
 
@@ -543,9 +560,45 @@ def getOSTotaltReport():
     """)
     orders = list()
     for order in cursor:
-        orders.append(
-            {"openedDate": str(order[0]), "os_number": order[1], "name": order[2], "equipment": order[3], "products": float(order[4]), "services": float(order[5]), "deliveredDate": "" if "None" == str(order[6]) else str(order[6])})
+        orders.append({
+            "openedDate": str(order[0]),
+            "os_number": order[1],
+            "name": order[2],
+            "equipment": order[3],
+            "products": float(order[4]),
+            "services": float(order[5]),
+            "deliveredDate": "" if "None" == str(order[6]) else str(order[6])
+        })
     
     return orders
 
-print(getOSTotaltReport())
+# d.2) b.ii
+
+# e.1) Listagem de todas as contas a pagar em aberto ou finalizadas
+def getBillsToPay():
+    cursor.execute("""
+        SELECT data_vencimento,PE.nome,valor,numero,tipo,MP.nome AS meio_pagamento,CX.nome AS caixa,descricao,data_quitacao,data_lancamento
+        FROM lancamento L
+        LEFT JOIN pedido PD ON PD.numero = L.fk_pedido_numero
+        LEFT JOIN pessoa PE ON PE.id = PD.fk_pessoa_id
+        JOIN caixa CX ON CX.id = L.fk_caixa_id
+        JOIN meio_pagamento MP ON MP.id = L.fk_meio_pagamento_id
+        WHERE debito AND data_vencimento IS NOT NULL
+        ORDER BY data_vencimento,data_quitacao;
+
+    """)
+    bills = list()
+    for bill in cursor:
+        bills.append({
+            "dueDate": str(bill[0]),
+            "name": "" if "None" == str(bill[1]) else str(bill[1]),
+            "value": float(bill[2]),
+            "number": None if "None" == str(bill[3]) else str(bill[3]),
+            "type": "" if "None" == str(bill[4]) else str(bill[4]),
+            "paymentMethod": bill[5],
+            "description": bill[6],
+            "paymentDate": "" if "None" == str(bill[7]) else str(bill[7]),
+            "releaseDate": "" if "None" == str(bill[8]) else str(bill[8]),
+        })
+    
+    return bills
