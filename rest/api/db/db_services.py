@@ -700,5 +700,20 @@ def getCategoriesByProductId(productId):
         })
     return categories
 
+def getSuppliersByProductId(productId):
+    cursor.execute("""
+        SELECT nome
+        FROM pessoa PE
+        JOIN fornecimento FM ON FM.fk_pessoa_id = PE.id
+        JOIN produto PR ON PR.id = FM.fk_produto_id
+        WHERE PR.id = {productId};
+    """.format(productId=productId))
+    suppliers = list()
+    for supplier in cursor:
+        suppliers.append({
+            "name": supplier[0]
+        })
+    return suppliers
 
-print(getCategoriesByProductId(1))
+
+print(getSuppliersByProductId(1))
