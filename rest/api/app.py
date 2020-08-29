@@ -1,6 +1,6 @@
  
 from flask import Flask, jsonify
-from routes.dbController import db_route
+from routes.dbController import db
 
 app = Flask(__name__)
 

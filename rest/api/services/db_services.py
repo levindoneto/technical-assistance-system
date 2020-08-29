@@ -550,7 +550,7 @@ def getClientsWhoBoughtReport():
     return clients
 
 # d.1) Relatório das ordens de serviço com total de produtos e serviços
-def getOSTotaltReport():
+def getOSTotalReport():
     cursor.execute("""
         SELECT data_abertura, fk_pedido_numero numero_os, nome, equipamento, SUM(IP.quantidade*IP.valor_unitario-IFNULL(IP.desconto,0)) produtos, SUM(SV.quantidade*SV.valor_unitario-IFNULL(SV.desconto,0)) servicos, data_entrega
         FROM item_pedido IP
@@ -685,6 +685,7 @@ def getProducts():
         })
     return products
 
+# e.iv) Listagem das categorias de um produto
 def getCategoriesByProductId(productId):
     cursor.execute("""
         SELECT nome
@@ -700,6 +701,7 @@ def getCategoriesByProductId(productId):
         })
     return categories
 
+# e.v) Listagem dos fornecedores de um produto
 def getSuppliersByProductId(productId):
     cursor.execute("""
         SELECT nome
