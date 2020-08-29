@@ -714,6 +714,3 @@ def getSuppliersByProductId(productId):
             "name": supplier[0]
         })
     return suppliers
-
-
-print(getSuppliersByProductId(1))
