@@ -630,4 +630,16 @@ def getBillsToReceive():
     
     return bills
 
-print(getBillsToReceive())
+def getRegisters():
+    cursor.execute("""
+        SELECT * from caixa
+    """)
+    registers = list()
+    for register in cursor:
+        registers.append({
+            "id": register[0],
+            "name": register[1]
+        })
+    return registers
+
+print(getRegisters())
