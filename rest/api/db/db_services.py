@@ -685,5 +685,20 @@ def getProducts():
         })
     return products
 
+def getCategoriesByProductId(productId):
+    cursor.execute("""
+        SELECT nome
+        FROM categoria CT
+        JOIN classificacao CS ON CS.fk_categoria_id = CT.id
+        JOIN produto PR ON PR.id = CS.fk_produto_id
+        WHERE PR.id = {productId};
+    """.format(productId=productId))
+    categories = list()
+    for category in cursor:
+        categories.append({
+            "name": category[0]
+        })
+    return categories
 
-print(getProducts())
+
+print(getCategoriesByProductId(1))
