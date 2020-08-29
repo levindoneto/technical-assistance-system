@@ -671,4 +671,19 @@ def getRegisterTransactions(idRegister): # use getRegisters() on the selection
     
     return transactions
 
-print(getRegisterTransactions(1))
+def getProducts():
+    cursor.execute("""
+        SELECT * from produto
+    """)
+    products = list()
+    for product in cursor:
+        products.append({
+            "id": product[0],
+            "description": product[1],
+            "value": float(product[2]),
+            "stock": product[4],
+        })
+    return products
+
+
+print(getProducts())
