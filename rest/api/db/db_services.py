@@ -642,4 +642,33 @@ def getRegisters():
         })
     return registers
 
-print(getRegisters())
+# e.iii) Listagem de todas as contas a receber em aberto ou finalizadas
+def getRegisterTransactions(idRegister): # use getRegisters() on the selection
+    cursor.execute("""
+        SELECT CX.id, data_quitacao, PE.nome, valor, numero, tipo, MP.nome AS meio_pagamento, descricao, debito
+        FROM caixa CX
+        JOIN lancamento L ON CX.id = L.fk_caixa_id
+        LEFT JOIN pedido PD ON PD.numero = L.fk_pedido_numero
+        LEFT JOIN pessoa PE ON PE.id = PD.fk_pessoa_id
+        JOIN meio_pagamento MP ON MP.id = L.fk_meio_pagamento_id
+        WHERE data_quitacao IS NOT NULL
+        AND CX.id = {idRegister}
+        ORDER BY data_quitacao;
+    """.format(idRegister=idRegister))
+    transactions = list()
+    for transaction in cursor:
+        transactions.append({
+            "id": str(transaction[0]),
+            "paymentDate": "" if "None" == str(transaction[1]) else str(transaction[1]),
+            "name": "" if "None" == str(transaction[2]) else str(transaction[2]),
+            "value": float(transaction[3]),
+            "number": None if "None" == str(transaction[4]) else str(transaction[4]),
+            "type": "" if "None" == str(transaction[5]) else str(transaction[5]),
+            "paymentMethod": transaction[6],
+            "description": "" if "None" == str(transaction[7]) else str(transaction[7]),
+            "debit": "" if "None" == str(transaction[8]) else str(transaction[8]),
+        })
+    
+    return transactions
+
+print(getRegisterTransactions(1))
